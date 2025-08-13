@@ -8,7 +8,7 @@ st.title("Skin Cancer Classifier")
 
 # نزل الموديل من Hugging Face
 model_path = hf_hub_download(
-    repo_id="Nesma333/skin-cancer-demo", 
+    repo_id="Nesma333/skin-cancer-resnet50", 
     filename="skin_cancer_resnet50_finetuned.h5"                 
 )
 
