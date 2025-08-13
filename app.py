@@ -11,8 +11,7 @@ model_path = hf_hub_download(
     repo_id="Nesma333/skin-cancer-resnet50", 
     filename="skin_cancer_Vgg16_finetuned1.h5"                 
 )
-
-model = tf.keras.models.load_model(model_path)
+model = tf.keras.models.load_model(model_path, compile=False)
 
 st.write("### Upload an image of a skin lesion")
 uploaded_file = st.file_uploader("Choose an image...", type=["jpg", "jpeg", "png"])
