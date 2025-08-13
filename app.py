@@ -1,29 +1,31 @@
 import streamlit as st
-import numpy as np
 import tensorflow as tf
-from PIL import Image
 from huggingface_hub import hf_hub_download
 
 st.title("Skin Cancer Classifier")
 
-# نزل الموديل من Hugging Face
-model_path = hf_hub_download(
-    repo_id="Nesma333/skin-cancer-resnet50", 
-    filename="skin_cancer_resnet50_finetuned.h5"                 
-)
+# 1. حمل النموذج من Hugging Face
+repo_id = "Nesma333/skin-cancer-resnet50"
+filename = "skin_cancer_resnet50_finetuned.h5"
 
-model = tf.keras.models.load_model(model_path)
+model_path = hf_hub_download(repo_id=repo_id, filename=filename)
 
-st.write("### Upload an image of a skin lesion")
-uploaded_file = st.file_uploader("Choose an image...", type=["jpg", "jpeg", "png"])
+# 2. حمل النموذج (compile=False لتفادي المشاكل)
+model = tf.keras.models.load_model(model_path, compile=False)
 
+# 3. ارفع صورة للتجربة
+uploaded_file = st.file_uploader("Upload a skin image...", type=["jpg", "png", "jpeg"])
 if uploaded_file is not None:
-    image = Image.open(uploaded_file).resize((224, 224,3))  # غيّري على حسب حجم الموديل
+    import numpy as np
+    from PIL import Image
+
+    image = Image.open(uploaded_file).resize((224, 224))
     st.image(image, caption="Uploaded Image", use_column_width=True)
-    
-    img_array = np.expand_dims(np.array(image) / 255.0, axis=0)
-    
-    if st.button("Predict"):
-        preds = model.predict(img_array)
-        class_idx = np.argmax(preds)
-        st.success(f"Prediction: Class {class_idx}")
+
+    # 4. حضر الصورة للنموذج
+    img_array = np.array(image) / 255.0
+    img_array = np.expand_dims(img_array, axis=0)
+
+    # 5. اعمل التنبؤ
+    prediction = model.predict(img_array)
+    st.write("Prediction:", prediction)
