@@ -18,7 +18,7 @@ st.write("### Upload an image of a skin lesion")
 uploaded_file = st.file_uploader("Choose an image...", type=["jpg", "jpeg", "png"])
 
 if uploaded_file is not None:
-    image = Image.open(uploaded_file).resize((224, 224))  # غيّري على حسب حجم الموديل
+    image = Image.open(uploaded_file).resize((224, 224,3))  # غيّري على حسب حجم الموديل
     st.image(image, caption="Uploaded Image", use_column_width=True)
     
     img_array = np.expand_dims(np.array(image) / 255.0, axis=0)
