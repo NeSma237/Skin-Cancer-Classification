@@ -1,36 +1,29 @@
 import streamlit as st
-import tensorflow as tf
 import numpy as np
+import tensorflow as tf
 from PIL import Image
+from huggingface_hub import hf_hub_download
 
-#تحميل الموديل
-@st.cache_resource
-def load_model():
-    model = tf.keras.models.load_model("skin_cancer_resnet50_finetuned.h5", compile=False)
-    return model
+st.title("Skin Cancer Classifier")
 
-model = load_model()
+# نزل الموديل من Hugging Face
+model_path = hf_hub_download(
+    repo_id="Nesma333/skin-cancer-demo", 
+    filename="skin_cancer_resnet50_finetuned.h5"                 
+)
 
-#ترويسة
-st.title("Skin Cancer Classification")
+model = tf.keras.models.load_model(model_path)
 
-#رفع صورة
-uploaded_file = st.file_uploader("Upload a skin lesion image", type=["jpg", "jpeg", "png"])
+st.write("### Upload an image of a skin lesion")
+uploaded_file = st.file_uploader("Choose an image...", type=["jpg", "jpeg", "png"])
 
-#لو في صورة مرفوعة
 if uploaded_file is not None:
-    image = Image.open(uploaded_file).convert("RGB")
-    st.image(image, caption='Uploaded Image', use_column_width=True)
-
-    # تجهيز الصورة
-    image = image.resize((224, 224))
-    img_array = tf.keras.preprocessing.image.img_to_array(image)
-    img_array = np.expand_dims(img_array, axis=0)
-    img_array /= 255.0
-
-    # توقع
-    prediction = model.predict(img_array)
-    class_names = ['akiec', 'bcc', 'bkl', 'df', 'mel', 'nv', 'vasc']
-    predicted_class = class_names[np.argmax(prediction)]
-
-    st.write(f"### Prediction: {predicted_class}")
+    image = Image.open(uploaded_file).resize((224, 224,3))  # غيّري على حسب حجم الموديل
+    st.image(image, caption="Uploaded Image", use_column_width=True)
+    
+    img_array = np.expand_dims(np.array(image) / 255.0, axis=0)
+    
+    if st.button("Predict"):
+        preds = model.predict(img_array)
+        class_idx = np.argmax(preds)
+        st.success(f"Prediction: Class {class_idx}")
