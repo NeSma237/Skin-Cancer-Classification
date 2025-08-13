@@ -2,6 +2,12 @@ import streamlit as st
 import tensorflow as tf
 from huggingface_hub import hf_hub_download
 
+from tensorflow.keras.models import load_model
+
+model = load_model(model_path,compile=False)
+model.summary()
+
+
 st.title("Skin Cancer Classifier")
 
 # 1. حمل النموذج من Hugging Face
