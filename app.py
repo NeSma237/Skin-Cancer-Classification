@@ -6,7 +6,7 @@ from PIL import Image
 #تحميل الموديل
 @st.cache_resource
 def load_model():
-    model = tf.keras.models.load_model("skin_model.h5", compile=False)
+    model = tf.keras.models.load_model("skin_cancer_resnet50_finetuned.h5", compile=False)
     return model
 
 model = load_model()
