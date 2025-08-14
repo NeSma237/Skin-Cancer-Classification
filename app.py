@@ -1,37 +1,53 @@
 import streamlit as st
 import tensorflow as tf
-from huggingface_hub import hf_hub_download
+import numpy as np
+from PIL import Image
 
-from tensorflow.keras.models import load_model
+# =========================
+# تحميل الموديل
+# =========================
+@st.cache_resource  # علشان الموديل ميعدش يحمل كل مرة
+def load_model():
+    model = tf.keras.models.load_model("skin_cancer_resnet50_finetuned.h5", compile=False)
+    return model
 
-model = load_model(model_path,compile=False)
-model.summary()
+model = load_model()
 
+# =========================
+# إعداد الصفحة
+# =========================
+st.set_page_config(page_title="Skin Cancer Classifier", layout="centered")
+st.title("Skin Cancer Classification using ResNet50")
+st.write("ارفع صورة للجلد وسيقوم النموذج بالتنبؤ بالتصنيف المناسب")
 
-st.title("Skin Cancer Classifier")
+# =========================
+# رفع الصورة
+# =========================
+uploaded_file = st.file_uploader("ارفع صورة هنا", type=["jpg", "jpeg", "png"])
 
-# 1. حمل النموذج من Hugging Face
-repo_id = "Nesma333/skin-cancer-resnet50"
-filename = "skin_cancer_resnet50_finetuned.h5"
-
-model_path = hf_hub_download(repo_id=repo_id, filename=filename)
-
-# 2. حمل النموذج (compile=False لتفادي المشاكل)
-model = tf.keras.models.load_model(model_path, compile=False)
-
-# 3. ارفع صورة للتجربة
-uploaded_file = st.file_uploader("Upload a skin image...", type=["jpg", "png", "jpeg"])
 if uploaded_file is not None:
-    import numpy as np
-    from PIL import Image
+    # قراءة الصورة
+    image = Image.open(uploaded_file).convert("RGB")
+    st.image(image, caption="الصورة المرفوعة", use_column_width=True)
 
-    image = Image.open(uploaded_file).resize((224, 224))
-    st.image(image, caption="Uploaded Image", use_column_width=True)
+    # =========================
+    # Preprocessing
+    # =========================
+    img_size = (224, 224)  # نفس حجم التدريب
+    img = image.resize(img_size)
+    img_array = np.array(img) / 255.0  # Normalization
+    img_array = np.expand_dims(img_array, axis=0)  # (1, 224, 224, 3)
 
-    # 4. حضر الصورة للنموذج
-    img_array = np.array(image) / 255.0
-    img_array = np.expand_dims(img_array, axis=0)
+    # =========================
+    # Prediction
+    # =========================
+    preds = model.predict(img_array)
+    predicted_class = np.argmax(preds, axis=1)[0]
+    confidence = np.max(preds)
 
-    # 5. اعمل التنبؤ
-    prediction = model.predict(img_array)
-    st.write("Prediction:", prediction)
+    # =========================
+    # عرض النتيجة
+    # =========================
+    st.subheader("النتيجة:")
+    st.write(f"التصنيف المتوقع: **{predicted_class}**")
+    st.write(f"نسبة الثقة: **{confidence*100:.2f}%**")
